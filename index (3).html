@@ -1,0 +1,137 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Big Bang Premium</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tabletop.js/1.5.1/tabletop.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: #222;
+      margin-bottom: 30px;
+    }
+    .section {
+      margin-bottom: 50px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      background-color: #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    th, td {
+      padding: 12px;
+      border: 1px solid #ddd;
+      text-align: center;
+    }
+    th {
+      background-color: #1e88e5;
+      color: white;
+    }
+    .signal-table th {
+      background-color: #43a047;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🚀 Big Bang Premium</h1>
+
+  <div class="section">
+    <h2>💰 Live Crypto Prices</h2>
+    <table id="price-table">
+      <thead>
+        <tr>
+          <th>Coin</th>
+          <th>Price (USD)</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <div class="section">
+    <h2>📈 Trade Signals</h2>
+    <table id="signals-table" class="signal-table">
+      <thead>
+        <tr>
+          <th>Coin</th>
+          <th>Entry</th>
+          <th>Target</th>
+          <th>Stop Loss</th>
+          <th>Time Frame</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <script>
+    // Load live prices
+    function loadPrices(data) {
+      const ids = data.map(row => row["Coin ID"].toLowerCase()).join(',');
+      const nameMap = {};
+      data.forEach(row => {
+        nameMap[row["Coin ID"].toLowerCase()] = row["Coin Name"];
+      });
+
+      fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd`)
+        .then(response => response.json())
+        .then(prices => {
+          const tableBody = document.querySelector("#price-table tbody");
+          tableBody.innerHTML = "";
+          Object.keys(prices).forEach(id => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>${nameMap[id] || id}</td>
+              <td>$${prices[id].usd.toLocaleString()}</td>
+            `;
+            tableBody.appendChild(tr);
+          });
+        });
+    }
+
+    // Load trade signals
+    function loadSignals(data) {
+      const tableBody = document.querySelector("#signals-table tbody");
+      tableBody.innerHTML = "";
+      data.forEach(row => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${row.Coin}</td>
+          <td>${row.Entry}</td>
+          <td>${row.Target}</td>
+          <td>${row.StopLoss}</td>
+          <td>${row.Timeframe}</td>
+        `;
+        tableBody.appendChild(tr);
+      });
+    }
+
+    // Load both sheets
+    window.addEventListener("DOMContentLoaded", () => {
+      Tabletop.init({
+        key: "https://docs.google.com/spreadsheets/d/1DQ5DagmkLmK1Q_6WMUDX-W0B01OFn0hSvzQrNaGB7ZQ/edit?usp=sharing",
+        simpleSheet: true,
+        callback: loadPrices
+      });
+
+      Tabletop.init({
+        key: "https://docs.google.com/spreadsheets/d/1YjfRORX20foduNeGyuMQFiptsXnR8Jf72sVMf-PJhbs/edit?usp=sharing",
+        simpleSheet: true,
+        callback: loadSignals
+      });
+    });
+  </script>
+
+</body>
+</html>
